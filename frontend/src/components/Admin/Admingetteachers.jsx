@@ -3,22 +3,34 @@ import { useState,useEffect } from 'react'
 import axios from 'axios'
 import Button from '../../parts/Button'
 import Apppbar from '../../parts/Appbar'
+import { useNavigate } from 'react-router-dom'
+
 export default function Admingetteachers() {
- 
     const [teacher,setTeacher]=useState([])
+    const navigate=useNavigate()
+    axios.defaults.withCredentials=true
     useEffect(() =>{
-      console.log("hi")
-       const fetchteachers=async()=>{  try {
-         console.log("hey")
-         const response=await axios.get("http://localhost:7777/teacher");
-         setTeacher(response.data)
-         console.log(response.data)
-         console.log(response);
-     } catch (error) {
-       console.log(error);
-    }}
-    fetchteachers(); 
-     
+      axios.get("http://localhost:7777/adminverify").then(r=>{
+        console.log('r=',r)
+        if(r.data==1)
+          {
+                console.log("hi")
+                const fetchteachers=async()=>{  try {
+                  console.log("hey")
+                  const response=await axios.get("http://localhost:7777/teacher");
+                  setTeacher(response.data)
+                  console.log(response.data)
+                  console.log(response);
+              } catch (error) {
+                console.log(error);
+              }}
+              fetchteachers(); 
+          }
+          else{
+            navigate('/')
+          }
+        });
+            
      },[])
      async function deleteteacher(id){
       const res=await axios.delete("http://localhost:7777/teacher/"+id);

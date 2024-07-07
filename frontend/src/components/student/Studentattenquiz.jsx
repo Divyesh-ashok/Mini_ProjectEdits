@@ -28,21 +28,29 @@ export default function Studentattenquiz() {
         setIsCorrect(false);
       }
     };
+    
     useEffect(() =>{
-        console.log("hi")
+      axios.get("http://localhost:7777/studentverify").then(r=>{
+        console.log('r=',r)
+        if(r.data==1)
+          {
+                  const fetchquiz=async()=>{  try {
+                  const quiz=await axios.post("http://localhost:7777/getquiz",{id:id})
+                    setQ(quiz.data)
+                    //console.log(q)
+                    setAttend(q[0].quizes)
+                    //console.log(attend)
+              } catch (error) {
+                console.log(error);
+              }}
+              fetchquiz();
+          }
+          else{
+            navigate('/')
+          }
+        });
+       },[q,attend])
    
-      fetchquiz(); 
-       
-       },[])
-       const fetchquiz=async()=>{  try {
-        const quiz=await axios.post("http://localhost:7777/getquiz",{id:id})
-        setQ(quiz.data)
-        //console.log(q)
-        setAttend(q[0].quizes)
-        //console.log(attend)
-   } catch (error) {
-     console.log(error);
-  }}
   return (
    <>
       <div className='bg-black shadow-lg fixed w-full'>

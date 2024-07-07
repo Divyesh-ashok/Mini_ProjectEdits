@@ -2,10 +2,24 @@ import React from 'react'
 import Apppbar from '../../parts/Appbar'
 import { useState,useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
 export default function Adminquiz() {
     const [buttonCount, setButtonCount] = useState(0);
     const [buttons, setButtons] = useState([]);
-  
+    const navigate=useNavigate()
+    axios.defaults.withCredentials=true
+    useEffect(()=>{
+    axios.get("http://localhost:7777/adminverify").then(r=>{
+    console.log('r=',r)
+    if(r.data==1)
+      {
+      }
+      else{
+        navigate('/')
+      }
+    });
+},[])
     const handleAddButton = () => {
       setButtonCount(buttonCount + 1);
       setButtons([...buttons, buttonCount]);

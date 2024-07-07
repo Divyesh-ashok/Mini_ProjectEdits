@@ -3,7 +3,23 @@ import InputBox from '../../parts/InputBox'
 import Button from '../../parts/Button'
 import Heading from '../../parts/Heading'
 import Stunav from './Stunav'
+import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
+import { useEffect } from 'react';
 export default function Studentscholarship() {
+  const navigate=useNavigate()
+  axios.defaults.withCredentials=true
+  useEffect(()=>{
+    axios.get("http://localhost:7777/studentverify").then(r=>{
+    console.log('r=',r)
+    if(r.data==1)
+      {
+      }
+      else{
+        navigate('/')
+      }
+    });
+},[])
   return (
     <>
     <Stunav/>

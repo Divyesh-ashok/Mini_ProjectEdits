@@ -6,15 +6,29 @@ import Heading from '../../parts/Heading'
 import axios from 'axios'
 import {toast} from 'react-toastify'
 import Tenav from './Tenav'
+import { useNavigate } from 'react-router-dom'
+import { useEffect } from 'react';
 
 export default function Teacherstudymaterial() {
 const [subject,setSubject]=useState("")
 const [semester,setSemester]=useState("")
-
 const [file,setFile]=useState("")
+const navigate=useNavigate()
+axios.defaults.withCredentials=true
+useEffect(()=>{
+  axios.get("http://localhost:7777/teacherverify").then(r=>{
+  console.log('r=',r)
+  if(r.data==1)
+    {
+      
+    }
+    else{
+      navigate('/')
+    }
+  });
+},[])
 const submitFile=async (e)=>{
     console.log("hii")
-    
     const formData=new FormData();
     formData.append("subject",subject);
     formData.append("subject",semester);

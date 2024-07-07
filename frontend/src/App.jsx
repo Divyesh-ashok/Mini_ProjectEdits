@@ -26,14 +26,18 @@ import Adminquiz from "./components/Admin/Adminquiz"
 import Studentquiz from "./components/student/Studentquiz"
 import Studentattenquiz from "./components/student/Studentattenquiz"
 import alnav from "./components/Alumini/Alnav"
+import Forgotpassword from "./components/Forgotpassword"
+import Resetpassword from "./components/Resetpassword"
+import Teacherresetpassword from "./components/Teacherresetpassword"
+import Alumniresetpassword from "./components/Alumniresetpassword"
 function App() {
+  
 
   return (
     <div>
        <BrowserRouter>
        <Routes>
         <Route path="/" element={<Signin/>}/>
-        <Route path="/admin" element={<Admin/>}/>
         <Route path="/intermmediate" element={<Intermmediate/>}/>
         {/* <Route path="/signup" element={<Signup/>}/> */}
         {/* <Route path="/teacher/signup" element={<Signup/>}/> */}
@@ -60,6 +64,10 @@ function App() {
         <Route path="/attendquiz" element={<Studentattenquiz/>}/>
         <Route path="/adminhome" element={<Adminhome/>}/>
         <Route path="/alumninav" element={<alnav/>}/>
+        <Route path="/forgotpassword" element={<Forgotpassword/>}/>
+        <Route path="/resetpassword/:token" element={<Resetpassword/>}/>
+        <Route path="/teacherresetpassword/:token" element={<Teacherresetpassword/>}/>
+        <Route path="/alumniresetpassword/:token" element={<Alumniresetpassword/>}/>
   
        </Routes>
        </BrowserRouter>

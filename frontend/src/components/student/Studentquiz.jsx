@@ -8,6 +8,16 @@ export default function Studentquiz() {
     const [q,setQ]=useState([])
     useEffect(() =>{
         console.log("hi")
+        axios.get("http://localhost:7777/studentverify").then(r=>{
+          console.log('r=',r)
+          if(r.data==1)
+            {
+              fetchquiz(); 
+                        }
+            else{
+              navigate('/')
+            }
+          });
          const fetchquiz=async()=>{  try {
             const quiz=await axios.get("http://localhost:7777/getquiz")
             setQ(quiz.data)
@@ -15,14 +25,12 @@ export default function Studentquiz() {
        } catch (error) {
          console.log(error);
       }}
-      fetchquiz(); 
        
        },[])
   return (
     <>
      <Stunav/>
     <div className='py-24'>
-        <h1>HII</h1>
         <div className='flex justify-center'>
         {
                         

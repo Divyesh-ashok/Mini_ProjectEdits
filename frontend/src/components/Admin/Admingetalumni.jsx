@@ -3,20 +3,32 @@ import { useState,useEffect } from 'react'
 import axios from 'axios'
 import Button from '../../parts/Button'
 import Apppbar from '../../parts/Appbar'
+import { useNavigate } from 'react-router-dom'
 export default function Admingetalumni() {
   const [alumni,setAlumni]=useState([])
+  const navigate=useNavigate()
+  axios.defaults.withCredentials=true
   useEffect(() =>{
-    console.log("hi")
-     const fetchAlumnis=async()=>{  try {
-       console.log("hey")
-       const response=await axios.get("http://localhost:7777/alumni");
-       setAlumni(response.data)
-       console.log(response.data)
-       console.log(response);
-   } catch (error) {
-     console.log(error);
-  }}
-  fetchAlumnis(); 
+    axios.get("http://localhost:7777/adminverify").then(r=>{
+      console.log('r=',r)
+      if(r.data===1)
+        {
+              console.log("hi")
+              const fetchAlumnis=async()=>{  try {
+                console.log("hey")
+                const response=await axios.get("http://localhost:7777/alumni");
+                setAlumni(response.data)
+                console.log(response.data)
+                console.log(response);
+            } catch (error) {
+              console.log(error);
+            }}
+            fetchAlumnis(); 
+        }
+        else{
+          navigate('/')
+        }
+      });
    
    },[])
    async function deletealumni(id){

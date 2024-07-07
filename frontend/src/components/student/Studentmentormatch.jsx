@@ -8,10 +8,20 @@ export default function alumni() {
     const navigate=useNavigate()
      const [alumnis,setAlumnis]=useState([])
     const [filter,setFilter]=useState("")
+    axios.defaults.withCredentials=true
      useEffect(()=>{
-      axios.get("http://localhost:7777/alumniconnect?filter="+filter)
-        .then(response=>{setAlumnis(response.data.alumnis)})
-        console.log(filter)
+        axios.get("http://localhost:7777/studentverify").then(r=>{
+            console.log('r=',r)
+            if(r.data==1)
+              {
+                  axios.get("http://localhost:7777/alumniconnect?filter="+filter)
+                    .then(response=>{setAlumnis(response.data.alumnis)})
+                    console.log(filter)
+              }
+              else{
+                navigate('/')
+              }
+            });
         
     },[filter])
   return (

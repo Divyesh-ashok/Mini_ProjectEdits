@@ -21,6 +21,9 @@ async function Signupteacher(){
      if (res.data==1){
        navigate('/')
      }
+     else{
+      alert("User already exists! Try Signing in");
+     }
    }
 return (
     <>
@@ -38,7 +41,7 @@ return (
                 <InputBox onChange={(e)=>{setJoindate(e.target.value)}} label={"JOINING DATE"} placeholder={"2019"} type={"date"}/>
                 <InputBox onChange={(e)=>{setSubject(e.target.value)}} label={"SUBJECT"} placeholder={"......."} type={""}/>
                 <div className="pt-4">
-                <Button onClick={(e)=>Signupteacher()} label={"SIGN IN"}/>
+                <Button onClick={(e)=>Signupteacher()} label={"SIGN UP"}/>
               
                 </div>
             </div>

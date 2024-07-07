@@ -5,11 +5,26 @@ import Button from '../../parts/Button'
 import Heading from '../../parts/Heading'
 import axios from 'axios'
 import Apppbar from '../../parts/Appbar'
+import { useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
 export default function Admincreateevent() {
 const [ename,setEname]=useState("")
 const [content,setContent]=useState("")
 const [link,setLink]=useState("")
 const [file,setFile]=useState("")
+const navigate=useNavigate()
+axios.defaults.withCredentials=true
+useEffect(()=>{
+  axios.get("http://localhost:7777/adminverify").then(r=>{
+  console.log('r=',r)
+  if(r.data===1)
+    {
+    }
+    else{
+      navigate('/')
+    }
+  });
+},[])
 const submitFile=async (e)=>{
     console.log("hii")
     console.log(link)

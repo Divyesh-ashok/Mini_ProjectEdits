@@ -21,6 +21,10 @@ async function Signup(){
      if (res.data==1){
        navigate('/')
      }
+     else
+     {
+       alert("User already exists! Try Signing in");
+     }
    }
 return (
     <>
@@ -40,7 +44,7 @@ return (
                 
                 <InputBox onChange={(e)=>{setSpecialization(e.target.value)}} label={"FIELD OF SPECIALIZATION"} placeholder={"......."} type={""}/>
                 <div className="pt-4">
-                <Button onClick={(e)=>Signup()} label={"SIGN IN"}/>
+                <Button onClick={(e)=>Signup()} label={"SIGN UP"}/>
               
                 </div>
             </div>

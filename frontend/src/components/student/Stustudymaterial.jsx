@@ -3,9 +3,23 @@ import Stunav from './Stunav'
 import { useState,useEffect } from 'react';
 import axios from 'axios';
 import Button from '../../parts/Button';
+import { useNavigate } from 'react-router-dom'
 export default function Stustudymaterial() {
   const [image,setImage]=useState(null)
-  useEffect(()=>{getPdf()},[]);
+  const navigate=useNavigate()
+  axios.defaults.withCredentials=true
+  useEffect(()=>{
+    axios.get("http://localhost:7777/studentverify").then(r=>{
+      console.log('r=',r)
+      if(r.data==1)
+        {
+          getPdf()
+        }
+        else{
+          navigate('/')
+        }
+      });
+},[]);
   const getPdf=async()=>{
       const result=await axios.get("http://localhost:7777/studymaterial")
       console.log(result.data)

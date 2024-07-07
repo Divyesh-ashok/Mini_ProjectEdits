@@ -23,6 +23,18 @@ const [c2,setC2]=useState("");
 const [c3,setC3]=useState("");
 const [c4,setC4]=useState("");
 const [a,setA]=useState("");
+axios.defaults.withCredentials=true
+useEffect(()=>{
+  axios.get("http://localhost:7777/adminverify").then(r=>{
+  console.log('r=',r)
+  if(r.data===1)
+    {
+    }
+    else{
+      navigate('/')
+    }
+  });
+},[])
   return (
     <>
     <Apppbar/>

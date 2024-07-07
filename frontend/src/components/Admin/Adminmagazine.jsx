@@ -3,9 +3,22 @@ import Apppbar from '../../parts/Appbar'
 import { useState } from 'react'
 import axios from 'axios'
 import Button from '../../parts/Button'
+import { useNavigate } from 'react-router-dom'
 export default function Adminmagazine() {
     const [image,setImage]=useState(null)
-    useEffect(()=>{getPdf()},[]);
+    const navigate=useNavigate()
+    axios.defaults.withCredentials=true
+    useEffect(()=>{    
+      axios.get("http://localhost:7777/adminverify").then(r=>{
+      console.log('r=',r)
+      if(r.data==1)
+        {
+          getPdf()
+        }
+        else{
+          navigate('/')
+        }
+      });},[]);
     const getPdf=async()=>{
         const result=await axios.get("http://localhost:7777/magazine")
         console.log(result.data)

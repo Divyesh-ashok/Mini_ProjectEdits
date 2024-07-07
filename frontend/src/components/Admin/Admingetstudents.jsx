@@ -3,21 +3,33 @@ import { useState,useEffect } from 'react'
 import axios from 'axios'
 import Button from '../../parts/Button'
 import Apppbar from '../../parts/Appbar'
+import { useNavigate } from 'react-router-dom'
 export default function Admingetstudents() {
   const [student,setStudent]=useState([])
+  const navigate=useNavigate()
+  axios.defaults.withCredentials=true
   useEffect(() =>{
-    console.log("hi")
-     const fetchStudents=async()=>{  try {
-       console.log("hey")
-       const response=await axios.get("http://localhost:7777/student");
-       setStudent(response.data)
-       console.log(response.data)
-       console.log(response);
-   } catch (error) {
-     console.log(error);
-  }}
-  fetchStudents(); 
-   
+    axios.get("http://localhost:7777/adminverify").then(r=>{
+      console.log('r=',r)
+      if(r.data===1)
+        {
+              console.log("hi")
+              const fetchStudents=async()=>{  try {
+                console.log("hey")
+                const response=await axios.get("http://localhost:7777/student");
+                setStudent(response.data)
+                console.log(response.data)
+                console.log(response);
+            } catch (error) {
+              console.log(error);
+            }}
+            fetchStudents(); 
+        }
+        else{
+          navigate('/')
+        }
+      });
+        
    },[])
    async function deletestudent(id){
     const res=await axios.delete("http://localhost:7777/student/"+id);

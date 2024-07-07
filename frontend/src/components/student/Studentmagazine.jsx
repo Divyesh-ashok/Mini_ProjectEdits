@@ -5,26 +5,43 @@ import Button from '../../parts/Button'
 import Heading from '../../parts/Heading'
 import axios from 'axios'
 import Stunav from './Stunav'
+import { useNavigate } from 'react-router-dom'
+import { useEffect } from 'react';
+
+
 export default function Studentmagazine() {
 const [title,setTitle]=useState("")
 const [name,setName]=useState("")
 const [file,setFile]=useState("")
+const navigate=useNavigate()
+axios.defaults.withCredentials=true
+useEffect(()=>{
+  axios.get("http://localhost:7777/studentverify").then(r=>{
+  console.log('r=',r)
+  if(r.data==1)
+    {
+    }
+    else{
+      navigate('/')
+    }
+  });
+},[])
+
 const submitFile=async (e)=>{
-    console.log("hii")
-    
-    const formData=new FormData();
-    formData.append("title",title);
-    formData.append("file",file);
-    formData.append("name",name)
-    console.log(title,file)
-    //const res=await axios.post("http://localhost:7777/studentmagazine",formData,{headers:{"Content-Type":"multipart/form-data"}})
-    const res=await axios.post("http://localhost:7777/upload-files",formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      })
-    console.log(res)
-    window.location.reload()
-    alert('submitted successfully')
-}
+        const formData=new FormData();
+        formData.append("title",title);
+        formData.append("file",file);
+        formData.append("name",name)
+        console.log(title,file)
+        //const res=await axios.post("http://localhost:7777/studentmagazine",formData,{headers:{"Content-Type":"multipart/form-data"}})
+        const res= axios.post("http://localhost:7777/upload-files",formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        })
+        console.log(res)
+        window.location.reload()
+        alert('submitted successfully')
+      }
+
   return (
    <>
    <Stunav/>

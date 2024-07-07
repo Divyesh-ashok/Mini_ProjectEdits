@@ -4,11 +4,20 @@ const app = express();
 const cors = require("cors");
 const {student,teacher,alumni,course,magazine,events,qcollect,quizq,studymaterial} = require("./db");
 const multer=require('multer')
+const bcrypt = require('bcrypt');
+var nodemailer = require('nodemailer');
+require('dotenv').config()
+var cookieParser = require('cookie-parser')
+var jwt = require('jsonwebtoken');
 
-app.use(cors())
+app.use(cors({
+    origin: ["http://localhost:5173"],
+    credentials: true
+}))
 app.use(express.json());
 app.use("/files",express.static("files"))
 app.use("/posters",express.static("posters"))
+app.use(cookieParser())
 //students
 //--------
 //add quiz
@@ -45,12 +54,21 @@ res.json(response)
 //singnup
 app.post('/student/signup',async (req,res)=>{
     console.log("signup")
-    const body=req.body;
+    const {email,password,firstname,lastname,joindate,passdate}=req.body;
     const user=await student.findOne({email:req.body.email})
     if(user){
         return res.json({message:"email alredy exists/invalid inputs"})
     }
-    const dbuser=await student.create(body);
+    const hashpassword=await bcrypt.hash(password, 10)
+    const dbuser=await student.create({
+        email,
+        password: hashpassword,
+        firstname,
+        lastname,
+        joindate,
+        passdate
+    });
+    console.log(dbuser);
     return res.json(1)
 
 })
@@ -58,17 +76,328 @@ app.post('/student/signup',async (req,res)=>{
 app.post('/student/signin',async (req,res)=>{
     console.log(req.body.username)
     console.log(req.body.password)
-    const user=await student.findOne({email:req.body.email,password:req.body.password})
-    console.log(user)
-    if(user){
-        console.log("success")
-       return res.json({user})
+    const {email,password} = req.body;
+    const user=await student.findOne({email:email})
+    console.log('user=',user)
+    if(!user){
+        res.json(0)
     }
-    else{
-        return res.json(0)
+    else
+    {
+        const validpassword = await bcrypt.compare(password, user.password)
+        console.log(validpassword)
+        if(!validpassword)
+        {
+                res.json(0)
+        }
+        else
+        {
+            console.log('username=',user._id)
+            const token = jwt.sign({username: user._id}, process.env.KEY,{expiresIn: '1h'})
+            res.cookie('token', token, {httpOnly: true, maxAge: 360000})
+            res.json(user)
+        }
     }
    // console.log("unsuccessfull")
 })
+
+
+const studentverifyUser=async(req,res,next)=>{
+    
+    try{
+        const token=req.cookies.token;
+        if(!token){
+            return res.json(0)
+        }
+        else
+        {
+            const decoded=await jwt.verify(token,process.env.KEY);  
+            console.log('decoded=',decoded.username) 
+            const user=await student.findOne({_id: decoded.username})
+            if(!user){
+                res.json(0)
+            }
+            else{   
+                next()
+            }
+        }
+    }
+    catch(err){
+        console.log(err)
+        return res.json(0)
+    }
+};
+    
+app.get('/studentverify',studentverifyUser, async(req,res)=>{
+    return res.json(1)
+});
+
+
+const teacherverifyUser=async(req,res,next)=>{
+    
+    try{
+        const token=req.cookies.token;
+        if(!token){
+            return res.json(0)
+        }
+        else
+        {
+            const decoded=await jwt.verify(token,process.env.KEY);  
+            console.log('decoded=',decoded.username) 
+            const user=await teacher.findOne({_id: decoded.username})
+            if(!user){
+                res.json(0)
+            }
+            else{   
+                next()
+            }
+        }
+    }
+    catch(err){
+        console.log(err)
+        return res.json(0)
+    }
+};
+
+app.get('/teacherverify',teacherverifyUser, async(req,res)=>{
+    return res.json(1)
+});
+
+
+
+const alumniverifyUser=async(req,res,next)=>{
+    
+    try{
+        const token=req.cookies.token;
+        if(!token){
+            return res.json(0)
+        }
+        else
+        {
+            const decoded=await jwt.verify(token,process.env.KEY);  
+            console.log('decoded=',decoded.username) 
+            const user=await alumni.findOne({_id: decoded.username})
+            if(!user){
+                res.json(0)
+            }
+            else{   
+                next()
+            }
+        }
+    }
+    catch(err){
+        console.log(err)
+        return res.json(0)
+    }
+};
+
+app.get('/alumniverify',alumniverifyUser, async(req,res)=>{
+    return res.json(1)
+});
+
+
+const adminverifyUser=async(req,res,next)=>{
+    
+    try{
+        const token=req.cookies.token;
+        if(!token){
+            return res.json(0)
+        }
+        else
+        {
+            const decoded=await jwt.verify(token,process.env.KEY);  
+            console.log('decoded=',decoded.username) 
+            if(decoded.username!=process.env.ADE){
+                res.json(0)
+            }
+            else{   
+                next()
+            }
+        }
+    }
+    catch(err){
+        console.log(err)
+        return res.json(0)
+    }
+};
+
+app.get('/adminverify',adminverifyUser, async(req,res)=>{
+    return res.json(1)
+});
+
+
+
+
+
+app.get('/logout',async(req,res)=>{
+    res.clearCookie('token')
+    res.json(1)
+});
+
+
+
+app.post('/student/forgot', async(req,res)=>{
+    const {email}=req.body
+    const user=await student.findOne({email:email})
+    console.log(user)
+    if(!user){
+        res.json(0)
+    }
+    else{
+        const token=jwt.sign({id: user._id},process.env.KEY, {expiresIn: '5m'})
+        var transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'nexusminiproject@gmail.com',
+                pass: 'fwco gmxd bead sqxi'
+            }
+        });
+        
+        var mailOptions = {
+            from: 'nexusminiproject@gmail.com',
+            to: email,
+            subject: 'Reset password link',
+            text: `http://localhost:5173/resetpassword/${token}`
+        };
+        
+        transporter.sendMail(mailOptions, function(error, info){
+            if (error) {
+                console.log(error);
+            } else {
+                console.log('Email sent: ' + info.response);
+            }
+        });
+        res.json(1)
+    }
+});
+
+app.post('/teacher/forgot', async(req,res)=>{
+    const {email}=req.body
+    const user=await teacher.findOne({email:email})
+    console.log(user)
+    if(!user){
+        res.json(0)
+    }
+    else{
+        const token=jwt.sign({id: user._id},process.env.KEY, {expiresIn: '5m'})
+        var transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'nexusminiproject@gmail.com',
+                pass: 'fwco gmxd bead sqxi'
+            }
+        });
+        
+        var mailOptions = {
+            from: 'nexusminiproject@gmail.com',
+            to: email,
+            subject: 'Reset password link',
+            text: `http://localhost:5173/teacherresetpassword/${token}`
+        };
+        
+        transporter.sendMail(mailOptions, function(error, info){
+            if (error) {
+                console.log(error);
+            } else {
+                console.log('Email sent: ' + info.response);
+            }
+        });
+        res.json(1)
+    }
+});
+
+app.post('/alumni/forgot', async(req,res)=>{
+    const {email}=req.body
+    const user=await alumni.findOne({email:email})
+    console.log(user)
+    if(!user){
+        res.json(0)
+    }
+    else{
+        const token=jwt.sign({id: user._id},process.env.KEY, {expiresIn: '5m'})
+        var transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'nexusminiproject@gmail.com',
+                pass: 'fwco gmxd bead sqxi'
+            }
+        });
+        
+        var mailOptions = {
+            from: 'nexusminiproject@gmail.com',
+            to: email,
+            subject: 'Reset password link',
+            text: `http://localhost:5173/alumniresetpassword/${token}`
+        };
+        
+        transporter.sendMail(mailOptions, function(error, info){
+            if (error) {
+                console.log(error);
+            } else {
+                console.log('Email sent: ' + info.response);
+            }
+        });
+        res.json(1)
+    }
+});
+
+
+
+
+
+
+app.post('/student/resetpassword/:token', async(req,res)=>{
+    const {token}=req.params;
+    const {password}=req.body;
+    try{
+        const decoded=await jwt.verify(token,process.env.KEY);
+        const id=decoded.id;
+        console.log(id)
+        const hashpassword=await bcrypt.hash(password,10);
+        const user=await student.findOneAndUpdate({"_id": id}, {"password": hashpassword})
+        res.json(1)
+    }
+    catch(err){
+        console.log(err)
+        res.json(0)
+    }
+});
+
+app.post('/teacher/resetpassword/:token', async(req,res)=>{
+    const {token}=req.params;
+    const {password}=req.body;
+    try{
+        const decoded=await jwt.verify(token,process.env.KEY);
+        const id=decoded.id;
+        console.log(id)
+        const hashpassword=await bcrypt.hash(password,10);
+        const user=await teacher.findOneAndUpdate({"_id": id}, {"password": hashpassword})
+        res.json(1)
+    }
+    catch(err){
+        console.log(err)
+        res.json(0)
+    }
+});
+
+app.post('/alumni/resetpassword/:token', async(req,res)=>{
+    const {token}=req.params;
+    const {password}=req.body;
+    try{
+        const decoded=await jwt.verify(token,process.env.KEY);
+        const id=decoded.id;
+        console.log(id)
+        const hashpassword=await bcrypt.hash(password,10);
+        const user=await alumni.findOneAndUpdate({"_id": id}, {"password": hashpassword})
+        res.json(1)
+    }
+    catch(err){
+        console.log(err)
+        res.json(0)
+    }
+});
+
+
 //get all students
 app.get('/student',async(req,res)=>{
     const users=await student.find({})
@@ -180,12 +509,21 @@ app.delete('/student/:id',async(req,res)=>{
 //singnup
 app.post('/teacher/signup',async (req,res)=>{
     console.log("teachersignup")
-    const body=req.body;
-    const user=await teacher.findOne({email:req.body.email})
+    const {email,password,firstname,lastname,subject,joindate}=req.body;
+    const user=await teacher.findOne({email:email})
+    console.log(user)
     if(user){
         return res.json({message:"email alredy exists/invalid inputs"})
     }
-    const dbuser=await teacher.create(body);
+    const hashpassword=await bcrypt.hash(password, 10)
+    const dbuser=await teacher.create({
+        email,
+        password: hashpassword,
+        firstname,
+        lastname,
+        subject,
+        joindate
+    });
     return res.json(1)
 
 })
@@ -193,14 +531,27 @@ app.post('/teacher/signup',async (req,res)=>{
 app.post('/teacher/signin',async (req,res)=>{
     console.log(req.body.email)
     console.log(req.body.password)
-    const user=await teacher.findOne({email:req.body.email,password:req.body.password})
+    const {email,password} = req.body;
+    const user=await teacher.findOne({email:email})
     console.log(user)
-    if(user){
-        console.log("success")
-       return res.json(user)
+    if(!user){
+       res.json(0)
+       console.log('username')
     }
     else{
-        return res.json(0)
+        const validpassword = await bcrypt.compare(password, user.password)
+        console.log(validpassword)
+        if(!validpassword)
+        {
+                res.json(0)
+                console.log('password')
+        }
+        else
+        {
+            const token = jwt.sign({username: user._id}, process.env.KEY,{expiresIn: '1h'})
+            res.cookie('token', token, {httpOnly: true, maxAge: 360000})
+            res.json(user)
+        }
     }
    // console.log("unsuccessfull")
 })
@@ -246,12 +597,21 @@ app.delete('/teacher/:id',async(req,res)=>{
 //signup
 app.post('/alumni/signup',async (req,res)=>{
     console.log("teachsignup")
-    const body=req.body;
+    const {email,password,firstname,lastname,passdate,contactdetails,specialization}=req.body;
     const user=await alumni.findOne({email:req.body.email})
     if(user){
         return res.json({message:"email alredy exists/invalid inputs"})
     }
-    const dbuser=await alumni.create(body);
+    const hashpassword=await bcrypt.hash(password, 10)
+    const dbuser=await alumni.create({
+        email,
+        password: hashpassword,
+        firstname,
+        lastname,
+        passdate,
+        contactdetails,
+        specialization
+    });
     return res.json(1)
 
 })
@@ -259,18 +619,47 @@ app.post('/alumni/signup',async (req,res)=>{
 app.post('/alumni/signin',async (req,res)=>{
     console.log(req.body.username)
     console.log(req.body.password)
-    const user=await alumni.findOne({email:req.body.email,password:req.body.password})
-    console.log(user)
-    if(user){
-        console.log("success")
-       return res.json(user)
+    const {email,password} = req.body;
+    const user=await alumni.findOne({email:email})
+    console.log(user.data)
+    if(!user){
+       return res.json(0)
     }
     else{
-        console.log("failure")
-        return res.json(0)
+        const validpassword = await bcrypt.compare(password, user.password)
+        console.log(validpassword)
+        if(!validpassword)
+        {
+                res.json(0)
+        }
+        else
+        {
+            const token = jwt.sign({username: user._id}, process.env.KEY,{expiresIn: '1h'})
+            res.cookie('token', token, {httpOnly: true, maxAge: 360000})
+            res.json(user)
+        }
     }
-console.log("unsuccessfull")
 })
+
+
+
+app.post('/admin/signin',async (req,res)=>{
+    const {email,password} = req.body;
+    if(email===process.env.ADE){
+        if(password===process.env.ADP){
+            const token = jwt.sign({username: email}, process.env.KEY,{expiresIn: '1h'})
+            res.cookie('token', token, {httpOnly: true, maxAge: 360000})
+            res.json(1)
+        }
+        else{
+            res.json(0)
+        }
+    }
+    else{
+        res.json(0)
+    }
+})
+
 //get all alumini
 app.get('/alumni',async(req,res)=>{
     const users=await alumni.find({})
